@@ -64,3 +64,24 @@ A running log of making an original 3D game with stages and saved progress, publ
 ## 8. Release
 
 - Version `1.0.0` with `visibility = "public"`, deployed with `arc deploy` from this machine (the `git` method needs the GitHub App connected in Studio, which is a browser step with a GitHub password I don't have, and the token lacks the `workflow` scope anyway).
+- `arc deploy` published `1.0.0` to production at 02:31:43Z (release `e72498f3-…`, build `e9873b14-…`, served from `d7511477-….arcadible.io`). The "Release Published [Production]" email arrived at 02:31:44Z.
+- Checked about a minute later, without waiting for the 10-minute propagation window:
+  - https://arcadible.com/play/gnomon answers 200 with the title, the bio as `og:description`, and the cover as `og:image`. Its HTML references the icon, poster, splash and `splash_video.mp4`, the cover, the seven gallery items (`screenshot_01.png` to `_07`, with `screenshot_02.mp4` among them), and `evening-walk.mp4` in the description. The "More by" section shows Lampward's icon.
+  - The public record (`api.arcadible.com/v1/discover/games/<id>`, the lookup the CLI uses) says `visibility: public`, `ai: generative`, `audience: everyone`, genres puzzle/casual/strategy, inputs mouse/touch/keyboard, orientation any, released 2026-11-04T02:31:43Z.
+  - The production build played in headless Chromium through the real play page: `arcadible.build` is `{ version: "1.0.0", channel: "production" }`, `saves.where` is `"game"`, level 1 wins by script, and a reload continues at level 2 with a clean console.
+
+## Where I had to guess, in one place
+
+1. **Logging in without a browser.** Drove the account site's forms with curl, including the second password entry after the device code, which the docs don't describe. Worked first time this run.
+2. **Whether the levels are good.** Nobody has played with hands. Two tools stand in: a conservative solver (every level has a shadow-only solution) and a beam-search autoplayer in the real simulation (every level, with all its dew, is beatable by turning the sun alone, in 3 to 23 seconds of play when you know the answer). The difficulty curve is my reading of those numbers: solver turn counts rise from about 25 in Dawn to about 280 in Switchback, and the finale needs 85 turns and 38 moves with all dew. A person may find "Crossing" (level 10) a spike: it was the one level the narrow beam couldn't finish.
+3. **The auto-walker.** The shade decides where to walk (dew, then the well, then as near the well as the shadow allows). I believe this is the right feel for a one-input puzzle, and "Wait" exists for when it isn't, but a human might want direct control. Untested with hands.
+4. **Touch and phones.** Pointer events, 44 px buttons, safe-area insets, a capped pixel ratio, a smaller shadow map on coarse pointers, and `orientation = "any"` with the camera refitting to any aspect ratio. The phone screenshots are from a 19.5:9 headless viewport at 2x, not a device.
+5. **`ai = "generative"`.** All code-drawn, but the words players read were written by a model, so I disclosed rather than argue the definition.
+6. **Deploy method.** Direct `arc deploy`, with GitHub as the source of record; the GitHub App step and the Actions workflow are both out of reach from here.
+7. **Media composition.** Judged from the PNGs and extracted video frames, not from the store's layouts: title placement on the banner, cover, and poster inside the edge margin, and whether the dial reads well at thumbnail size.
+
+## Links
+
+- Store page: https://arcadible.com/play/gnomon
+- Play: https://play.arcadible.com/gnomon/
+- Source: https://github.com/games-by-claude/gnomon
