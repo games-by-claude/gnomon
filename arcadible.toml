@@ -1,0 +1,13 @@
+[game]
+id = "e7dd697b-5273-43fc-96cd-3f4aef0460d9"
+handle = "gnomon"
+genres = ["puzzle", "casual", "strategy"]
+audience = "everyone"
+ai = "generative"
+orientation = "any"
+inputs = ["mouse", "touch", "keyboard"]
+visibility = "unlisted"
+
+[workflow]
+build = "npm run build"
+deploy_dir = "dist"

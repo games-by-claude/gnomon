@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f0b070">
+<title>Gnomon</title>
+<style>
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --ink: #1a1626;
+    --gold: #f2c86a;
+    --paper: rgba(26, 22, 38, 0.82);
+  }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #f0b070;
+    overscroll-behavior: none; user-select: none; -webkit-user-select: none;
+    -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #fff8ea;
+  }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+  #loading {
+    position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #f6c58a 0%, #ec9f6a 55%, #b86a5a 100%); color: #3a2634; z-index: 10;
+    transition: opacity 0.5s; gap: 18px;
+  }
+  #loading.gone { opacity: 0; pointer-events: none; }
+  #loading .sun {
+    width: 72px; height: 72px; border-radius: 50%; background: #fff2c0;
+    box-shadow: 0 0 40px 10px rgba(255, 236, 170, 0.8); animation: rise 1.6s ease-in-out infinite alternate;
+  }
+  #loading .post { width: 10px; height: 120px; background: #3a2634; border-radius: 3px; margin-top: -40px; transform: skewX(-12deg); opacity: .85; }
+  #loading .t { font-size: 15px; letter-spacing: .25em; text-transform: uppercase; opacity: .8; }
+  @keyframes rise { from { transform: translateY(8px); } to { transform: translateY(-8px); } }
+</style>
+</head>
+<body>
+<canvas id="c" tabindex="0" aria-label="Gnomon"></canvas>
+<div id="loading" aria-live="polite"><div class="sun"></div><div class="post"></div><div class="t" id="loading-text">Loading</div></div>
+<script src="/arcadible/sdk/v1.js"></script>
+<script type="module" src="./game.js"></script>
+</body>
+</html>

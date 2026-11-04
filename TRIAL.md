@@ -1,0 +1,42 @@
+# TRIAL.md
+
+A running log of making an original 3D game with stages and saved progress, publishing it public on Arcadible as @claude with videos on its store page. What I did, in order, and where I had to guess.
+
+## 1. Finding my feet
+
+- `/home/agent/game` was empty. Node 24, npm 11, git, gh, curl, python3 (no pip, no Pillow) were there. The four secrets were in env vars.
+- The GitHub org `games-by-claude` already held one repo, `lampward`, with a `TRIAL.md` from an earlier run of this kind of task. I cloned it to `/tmp/lampward-ref` and read it first: it records the Arcadible docs layout, the device-code login trick, and that `arc deploy git` can't be used from here. That saved an hour of rediscovery, and I checked each claim against the current docs rather than trusting it.
+- The docs are at developer.arcadible.com, published as `llms-full.txt` (about 300 KB). I downloaded it to `/tmp/docs` and read the sections on the store page, saves, the SDK, the manifest, limits, runtime limitations, best practices, releases, and going public.
+- The new facts that matter for this task:
+  - **Videos on the store page** come from `.arcadible/<art>_video.mp4` companions to the icon, cover, banner, poster, and splash (same exact aspect ratio and size as the PNG, 3 to 30 seconds, up to 15 MB, no sound), and from MP4s in `.arcadible/gallery/`: a `screenshot_NN.mp4` is a carousel item shown by its first frame with a play mark, and any other MP4 can be embedded in the README description. `trailer` in `arcadible.toml` must be a YouTube or Vimeo URL, and I have no account on either, so I left it out.
+  - **Saves**: the hosted script `/arcadible/sdk/v1.js`, `await arcadible.ready`, then `saves.read`; never start a new game when `read` fails; never overwrite a save written by a newer version; save at checkpoints and on `visibilitychange`/`pagehide`; read before write.
+  - **`ai`**: the docs say code-generated art and levels don't count, but text a model produced that players see does. Everything players read in this game (level names, hints, the store text) was written by me, a model, so I set `ai = "generative"`.
+- **Sudo works here** (it didn't in the Lampward run), so I installed Chromium 156, ffmpeg (with libx264), Xvfb, and ImageMagick with apt. Headless Chromium renders WebGL2 through SwiftShader when launched with `--use-angle=swiftshader --use-gl=angle --enable-unsafe-swiftshader --no-sandbox`, which I confirmed with a tiny WebGL2 page before committing to it. That means every screenshot and video is the real game rendering, captured by puppeteer-core.
+
+## 2. Logging in without a browser
+
+- Same recipe as the Lampward log, which I re-verified: run `arc login --no-browser --no-qrcode` in the background, read the code it prints, then drive account.arcadible.com with curl and a cookie jar: GET `/login` for its `csrf`, POST email/password/csrf (302 to arcadible.com), GET `/link` for a fresh `csrf`, POST `dac=<code>` (302 to `/login`), GET `/login` for another `csrf`, POST the credentials once more (302 to the CLI docs with `?welcome`). `arc login` printed "Logged in." about a second later, and `arc whoami` shows `gba-claude@agentmail.to`.
+- Guess that held: the page's reCAPTCHA still isn't enforced on the server side.
+
+## 3. Project setup
+
+- `arc init -y` in the non-empty directory added only `arcadible.toml` with a fresh id and `0.1.0-beta.1`. I copied the starter's `.editorconfig`, `.gitattributes`, `.gitignore`, and `AGENTS.md` from the Lampward repo (they came from the blank starter).
+- Dependencies: `three` (the renderer), `esbuild` (one minified bundle, so the game is a single script plus `index.html`), and `puppeteer-core` (drives the system Chromium for captures). There's a build step: `npm run build` writes `dist/`, which is `deploy_dir`.
+
+## 4. The game: Gnomon
+
+- Premise: you don't control the character; you control the sun. A small "shade" can only exist in shadow, and walks by itself along whatever shadow it can reach, toward dew and then toward the well. Sandstone pillars of different heights cast the shadows, and turning the sun swings them all like the hand of a sundial. Fifteen hand-made levels in three chapters add long and short shadows, drops, sun stones that open gates when sunlight hits them, a sun that only crosses part of the sky, and a final "great dial".
+- Why this: it's 3D in substance, not just in looks. The puzzle is literally the projection of 3D geometry onto the ground, and three.js's real shadow map, driven by the same sun vector, draws exactly the shadow the game logic tests, so what the player sees is what the rules use.
+- Structure: `src/core.js` is engine-free (grid, sun, exact per-tile shadow ray tests with a 2D grid traversal, BFS pathfinding, the state machine, a `clone()` for search tools). `src/render.js` is three.js (instanced tiles and pillars, a directional light with a shadow map that follows the sun, a shade with glowing eyes, a sundial ring around each island with the sun as an orb on it). `src/ui.js` is a DOM overlay of real buttons, so keyboard, mouse, and touch all drive every menu. `src/audio.js` is synthesized (no files). `src/saves.js` wraps the SDK. `esbuild` bundles everything into one `dist/game.js` (about 580 KB, three.js included).
+- Saves: one `progress` save (current level, per-level done/dew/scorches) and one `settings` save (sound). Written when a level is completed and when a level is started (so "Continue" returns to where you were), after `arcadible.ready` and a `read`. A failed read shows a toast and disables writing rather than starting over; a save stamped by a newer version makes this version read-only; `saves.where === "memory"` shows a notice. Off Arcadible (the capture tool's local server) it falls back to `localStorage`.
+
+### Where I had to guess, and what I checked instead
+
+- **Camera and sky.** My first render had a flat dark backdrop. The probe showed why: the camera looks down at about 53 degrees, so the sky sphere's upper half is never in frame. I reworked the below-horizon colors into a warm hazy gradient and added the sundial ring with the sun as an orb, since the sun sprite in the sky could never be seen either.
+- **three.js r187 dropped `PCFSoftShadowMap`.** The console warning told me; I switched to `PCFShadowMap` with a radius.
+- **Level design without hands.** I couldn't play the levels, so I wrote two tools instead of guessing:
+  - `tools/solve.mjs`: a breadth-first search over (cell, sun azimuth in 3-degree steps, elevation, sun stones lit, dew) that requires the shade to be in shadow at every moment. It proved each level solvable and found start angles where the start tile is shadowed; the first drafts of 8 levels had a lit start, two were impossible at their elevation range (short shadows with pillars too far apart), and the "Spiral" was trivial (walls on both sides of every corridor shadow it from any direction), so it became "Switchback", with a wall on one side only.
+  - It also found a real bug: open gates were never walkable, because the shadow map only counted ordinary floor. Two gate levels had passed only because their gates could be walked around; I redesigned them so the gates are true chokepoints.
+  - `tools/autoplay.mjs`: a beam search over sun moves in the actual simulation (the real auto-walker, heat, timing), which proved every level can be beaten, with all of its dew, by turning the sun alone. Its winning scripts drive the screenshots and videos, so the store media are genuine, successful plays.
+- **The auto-walker's rule.** The first version only walked when a complete shadow path to the well existed, so in level 1 it just sat while the shadow swept past. Now it goes for reachable dew, then the well, and otherwise to the reachable shadowed cell nearest the well (or the nearest shadow when it's standing in light). That made the "follow the sweeping shadow" puzzles work.
+- **`ai = "generative"`.** Code-drawn art doesn't count under Arcadible's definition, but the text players read was written by a model, so I disclosed.
