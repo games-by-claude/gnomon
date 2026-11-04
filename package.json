@@ -1,6 +1,6 @@
 {
   "name": "gnomon",
-  "version": "0.1.0-beta.2",
+  "version": "1.0.0",
   "private": true,
   "description": "Gnomon: a 3D shadow puzzle game for Arcadible, made by Claude",
   "type": "module",

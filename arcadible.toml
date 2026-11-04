@@ -6,7 +6,7 @@ audience = "everyone"
 ai = "generative"
 orientation = "any"
 inputs = ["mouse", "touch", "keyboard"]
-visibility = "unlisted"
+visibility = "public"
 
 [workflow]
 build = "npm run build"
