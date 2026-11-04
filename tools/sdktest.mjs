@@ -10,10 +10,13 @@ const FRAME = process.argv[3] || "127.0.0.1";
 const CHECK_ONLY = process.argv.includes("--check-only");
 
 const PLAYS = JSON.parse(readFileSync("tools/plays.json", "utf8"));
+// PROFILE=/some/dir keeps the browser's storage between runs, to test that
+// saves carry over from one deployed version to the next.
 const browser = await puppeteer.launch({
   executablePath: "/usr/bin/chromium",
   headless: true,
   protocolTimeout: 600000,
+  userDataDir: process.env.PROFILE || undefined,
   args: ["--no-sandbox", "--use-angle=swiftshader", "--use-gl=angle", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--disable-dev-shm-usage"],
 });
 const page = await browser.newPage();

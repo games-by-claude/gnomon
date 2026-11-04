@@ -368,6 +368,7 @@ export class View {
     const [sx, sz, hop] = game.shadePosition();
     this.shade.position.set(sx + this.ox, 0, sz + this.oz);
     this.shadeBody.position.y = 0.28 + hop * 0.09;
+    this.shadeGhost.position.y = this.shadeBody.position.y;
     const heat = game.heat;
     this.shadeBody.material.emissiveIntensity = heat * 1.6;
     this.heatRing.material.opacity = heat * 0.9;
@@ -379,6 +380,7 @@ export class View {
       this.shade.scale.setScalar(0.2 + k * 0.8);
       this.shadeBody.material.emissiveIntensity = 2.5 * k;
       this.shadeBody.position.y = 0.28 + (1 - k) * 0.5;
+      this.shadeGhost.position.y = this.shadeBody.position.y;
     } else if (game.state === "won") {
       this.winT += dt;
       const k = clamp(this.winT / 0.8, 0, 1);
