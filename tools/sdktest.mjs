@@ -1,8 +1,13 @@
-// Runs the game inside arc serve's local play page (the real SDK host) and
-// checks that progress is kept through arcadible.saves across a reload.
+// Runs the game inside a play page (arc serve's local one, or Arcadible's)
+// and checks that progress is kept through arcadible.saves across a reload.
 //   arc serve --no-build -p 4100 &  then  node tools/sdktest.mjs
+//   node tools/sdktest.mjs https://play.arcadible.com/gnomon:staging/ arcadible.io [--check-only]
 import puppeteer from "puppeteer-core";
 import { readFileSync } from "node:fs";
+
+const URL = process.argv[2] || "http://localhost:4100/";
+const FRAME = process.argv[3] || "127.0.0.1";
+const CHECK_ONLY = process.argv.includes("--check-only");
 
 const PLAYS = JSON.parse(readFileSync("tools/plays.json", "utf8"));
 const browser = await puppeteer.launch({
@@ -18,11 +23,11 @@ page.on("console", (m) => log.push(`[${m.type()}] ${m.text()}`));
 page.on("pageerror", (e) => log.push(`[pageerror] ${e.message}`));
 
 async function gameFrame() {
-  await page.goto("http://localhost:4100/", { waitUntil: "load" });
+  await page.goto(URL, { waitUntil: "load" });
   await page.waitForFunction(() => document.querySelector("iframe"), { timeout: 30000 });
   let frame;
   for (let i = 0; i < 100 && !frame; i++) {
-    frame = page.frames().find((f) => f.url().includes("127.0.0.1"));
+    frame = page.frames().find((f) => f.url().includes(FRAME));
     if (!frame) await new Promise((r) => setTimeout(r, 200));
   }
   await frame.waitForFunction(() => globalThis.__gnomon && __gnomon.state.mode !== "loading", { timeout: 60000 });
@@ -30,7 +35,13 @@ async function gameFrame() {
 }
 
 let f = await gameFrame();
-console.log("boot:", await f.evaluate(() => ({ where: __gnomon.saves().where, build: arcadible.build, sdk: arcadible.version, mode: __gnomon.state.mode, progress: __gnomon.saves().progress, playLabel: document.querySelector("#ui .primary")?.textContent })));
+console.log("frame:", f.url());
+console.log("boot:", await f.evaluate(() => ({ where: __gnomon.saves().where, build: arcadible.build, sdk: arcadible.version, version: __gnomon.version, mode: __gnomon.state.mode, progress: JSON.stringify(__gnomon.saves().progress), settings: __gnomon.saves().settings, playLabel: document.querySelector("#ui .primary")?.textContent, error: __gnomon.saves().error, readOnly: __gnomon.saves().readOnly })));
+if (CHECK_ONLY) {
+  console.log("console:", log.filter((l) => !/404|favicon/.test(l)).join("\n") || "(clean)");
+  await browser.close();
+  process.exit(0);
+}
 await f.evaluate(() => {
   __gnomon.setManual(true);
   __gnomon.startLevel(0);

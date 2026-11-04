@@ -245,9 +245,9 @@ try {
     const page = doGallery ? await openPage(browser, port, { width: 1920, height: 1080, log }) : null;
     if (doGallery) {
     const shots = [
-      ["screenshot_01", "dawn-1", head(intro(PLAYS["dawn-1"]), 2.6)],
+      ["screenshot_01", "dawn-1", head(intro(PLAYS["dawn-1"]), 4.3)],
       ["screenshot_03", "dusk-5", head(intro(PLAYS["dusk-5"]), 7)],
-      ["screenshot_04", "noon-1", head(intro(PLAYS["noon-1"]), 3.2)],
+      ["screenshot_04", "noon-1", head(intro(PLAYS["noon-1"]), 4.6)],
       ["screenshot_05", "dusk-1", head(intro(PLAYS["dusk-1"]), 4)],
       ["screenshot_06", "noon-5", head(intro(PLAYS["noon-5"]), 5)],
     ];
@@ -263,7 +263,7 @@ try {
     await page.close();
     // Phone screenshots, landscape, 19.5:9.
     const phone = await openPage(browser, port, { width: 975, height: 450, dpr: 2, mobile: true, log });
-    for (const [name, id, script] of [["screenshot_01_phone", "dawn-1", head(intro(PLAYS["dawn-1"]), 2.6)], ["screenshot_02_phone", "dusk-5", head(intro(PLAYS["dusk-5"]), 7)]]) {
+    for (const [name, id, script] of [["screenshot_01_phone", "dawn-1", head(intro(PLAYS["dawn-1"]), 4.3)], ["screenshot_02_phone", "dusk-5", head(intro(PLAYS["dusk-5"]), 7)]]) {
       await phone.evaluate((id) => __gnomon.startLevel(__gnomon.LEVELS.findIndex((l) => l.id === id)), id);
       await runScript(phone, script, 30);
       await phone.screenshot({ path: join(GALLERY, name + ".png") });
