@@ -248,8 +248,10 @@ export class View {
     eyeL.position.set(-0.1, 0.33, 0.25);
     eyeR.position.set(0.1, 0.33, 0.25);
     shade.add(body, eyeL, eyeR);
-    // A faint silhouette that only draws where a pillar hides the shade.
-    const ghost = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 14), new THREE.MeshBasicMaterial({ color: 0xcdbdf0, transparent: true, opacity: 0.5, depthFunc: THREE.GreaterDepth, depthWrite: false }));
+    // A faint silhouette that only draws where a pillar hides the shade: it
+    // passes a greater-depth test only behind something nearer, and it's a
+    // little bigger than the body so the body itself never counts.
+    const ghost = new THREE.Mesh(new THREE.SphereGeometry(0.35, 20, 14), new THREE.MeshBasicMaterial({ color: 0xcdbdf0, transparent: true, opacity: 0.5, depthFunc: THREE.GreaterDepth, depthWrite: false }));
     ghost.scale.set(1, 0.85, 1);
     ghost.position.y = 0.28;
     ghost.renderOrder = 20;

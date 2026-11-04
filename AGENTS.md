@@ -22,20 +22,30 @@ Read the page that covers what you're changing, every time, rather than relying 
 
 | Path                 | Contains                                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `arcadible.toml`     | The game's id, version, and settings. Never change `id`. If it's missing, `arc init` adds one without scaffolding. |
+| `arcadible.toml`     | The game's id, handle, and settings. Never change `id`. The version comes from `package.json`.                     |
+| `package.json`       | `version` (bump before every deploy) and the `build` script that `arc` runs.                                       |
 | `README.md`          | The store page: the title, tagline, bio, and the description between the first and last `---`.                     |
-| `.arcadible/`        | The store art, with fixed file names.                                                                              |
-| `.arcadible-public/` | The game players load (`workflow.deploy_dir`), with `index.html` at its root. There's no build.                    |
+| `.arcadible/`        | The store art and videos, with fixed file names, all rendered from the game by `tools/capture.mjs`.                |
+| `src/`               | The game: `core.js` (logic, no DOM), `levels.js`, `render.js` (three.js), `ui.js`, `audio.js`, `saves.js`, `main.js`. |
+| `public/`            | `index.html` with the inline loading screen and the hosted SDK script tag.                                         |
+| `dist/`              | The build (`workflow.deploy_dir`), written by `npm run build`, not committed.                                       |
+| `tools/`             | `build.mjs`, `solve.mjs` (proves levels solvable), `autoplay.mjs` (plays them for real), `capture.mjs` (media).    |
 
 ## Commands
 
 ```sh
-arc serve                     # run the game locally, as Arcadible does, reloading as you edit
+npm run build                 # bundle src/ into dist/ (arc deploy and arc serve run this too)
+npm run solve                 # every level must print ok
+node tools/autoplay.mjs --dew # beam search in the real simulation; writes tools/plays.json
+node tools/capture.mjs smoke  # plays every level in headless Chromium and checks it wins
+node tools/capture.mjs shots  # screenshots and store art into .arcadible/
+node tools/capture.mjs videos # store videos (needs chromium and ffmpeg)
+arc serve                     # run the game locally, as Arcadible does
 arc validate                  # the checks arc deploy runs, with a link to each broken rule
-arc deploy                    # validate, pack, publish, and wait until it's published
+arc deploy                    # validate, build, pack, publish, and wait until it's published
 ```
 
-Every `arc` command is in https://developer.arcadible.com/references/arcadible-cli.md. Add `--json` to read a command's result as one JSON document on stdout. A command that fails exits with 1, and its JSON has `error.code`: act on the code, and look it up in https://developer.arcadible.com/references/errors.md, which says what to do.
+After changing a level, run `solve`, `autoplay`, and `smoke` before deploying: the capture tool's plays come from `tools/plays.json`.
 
 ## What doesn't change
 
