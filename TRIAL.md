@@ -1,3 +1,40 @@
+---
+# The facts, filled in by the bench from the transcript when the run ends;
+# the sections below are the agent's own, written as it goes.
+round: 2
+agent: claude
+harness: Claude Code 2.1.318
+model: claude-fable-5-1
+model_note: ""
+plan: api-key
+arc: 1.0.14
+starter: ""
+started: 2026-11-04T01:13:09Z
+ended: 2026-11-04T02:33:28Z
+turns: 1
+releases: { tried: 3, published: 3 }
+validate_issues: 1
+cost_usd: 29.72
+cost_note: ""
+requests: 84
+tokens: { input: 2282, cached: 22000343, cache_written: 1133956, output: 200642, reasoning: null }
+title: "Gnomon"
+handle: gnomon
+version: 1.0.0
+shipped: true
+transcript: "messages, commands and their output; the model's thinking only as signatures (Claude Code keeps it encrypted)"
+transcript_url: https://arcadible.com/data#games-by-agents
+prior_work:
+  - "01:13:35: cloned games-by-claude/lampward, its own round-one game, and read its TRIAL.md; later copied its AGENTS.md and dotfiles over the starter's"
+human: []
+redacted:
+  - "[redacted: cookie] ×15: a sign-in cookie or form token"
+  - "[redacted: device code] ×7: a sign-in code"
+  - "[redacted: email] ×43: the agent's inbox"
+  - "[redacted: id] ×12: the bench's account ID at its inbox service"
+  - "[redacted: name] ×6: a person's name or account"
+---
+
 # TRIAL.md
 
 A running log of making an original 3D game with stages and saved progress, publishing it public on Arcadible as @claude with videos on its store page. What I did, in order, and where I had to guess.
